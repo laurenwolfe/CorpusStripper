@@ -1,14 +1,21 @@
-import re, operator
+#!/usr/bin/python
+
+import re
+import operator
+import sys
 
 LIST_SIZE = 100
 BORING_WORDS = 'data/omit_lists/combined_omit.txt'
+UPLOAD_PATH = 'uploads/'
+OUTPUT_PATH = 'output/'
+MESSAGE_FILE = sys.argv[1]
+TIMELINE_FILE = sys.argv[2]
 
 
 def get_omitted_words(words):
     boring_file = open(words)
     boring_words = boring_file.read()
     omit_words = boring_words.split()
-
     return omit_words
 
 
@@ -69,7 +76,6 @@ def count_words(corpus):
             word_counts[word] = count + 1
         else:
             word_counts[word] = 1
-
     return word_counts
 
 
@@ -94,48 +100,57 @@ def get_max_words(ranked_words):
 
 
 def print_ranked_words(ranked_words):
-    total_words = get_max_words(ranked_words)
-    diff = ranked_words[total_words - 1][1]
-    i = 0
+    if len(ranked_words) > 0:
+        total_words = get_max_words(ranked_words)
+        diff = ranked_words[total_words - 1][1]
+        i = 0
 
-    while i < total_words:
-        print str(i + 1) + ": " + ranked_words[i][0] + " (" + str(ranked_words[i][1]) + "/" + str(diff) \
-              + " = " + str(ranked_words[i][1] / diff) + ")"
-        i += 1
+        while i < total_words:
+            print str(i + 1) + ": " + ranked_words[i][0] + " (" + str(ranked_words[i][1]) + "/" + str(diff) \
+                  + " = " + str(ranked_words[i][1] / diff) + ")"
+            i += 1
     return
 
 
 def output_ranked_words(ranked_words, filepath):
-    total_words = get_max_words(ranked_words)
-    diff = ranked_words[total_words - 1][1]
-    output_str = ''
+    if len(ranked_words) > 0:
+        total_words = get_max_words(ranked_words)
+        diff = ranked_words[total_words - 1][1]
+        output_str = ''
 
-    for i in range(total_words):
-        count = ranked_words[i][1] / diff
+        for i in range(total_words):
+            count = ranked_words[i][1] / diff
 
-        for j in range(count):
-            output_str += ranked_words[i][0] + ' '
+            for j in range(count):
+                output_str += ranked_words[i][0] + ' '
 
-    # output stripped text file
-    output_file = open(filepath, 'w')
-    output_file.write(output_str)
-    output_file.close()
+        # output stripped text file
+        output_file = open(filepath, 'w')
+        output_file.write(output_str)
+        output_file.close()
     return
 
 
-comments = get_comments('data/timeline.htm')
+def get_output_filename(filename):
+    split_name = filename.split('.')
+    output_file = split_name[0] + '.txt'
+    path = OUTPUT_PATH + output_file
+    return path
+
+
+comments = get_comments(UPLOAD_PATH + TIMELINE_FILE)
 comments = filter_by_regex(comments)
 comments = comments.upper()
 comment_dict = count_words(comments)
 comment_dict = filter_and_sort_words(comment_dict, get_omitted_words(BORING_WORDS))
-output_ranked_words(comment_dict, 'output/comments.txt')
+output_ranked_words(comment_dict, get_output_filename(TIMELINE_FILE))
 
-messages = get_messages('data/messages.htm')
+messages = get_messages(UPLOAD_PATH + MESSAGE_FILE)
 messages = filter_by_regex(messages)
 messages = messages.upper()
 message_dict = count_words(messages)
 message_dict = filter_and_sort_words(message_dict, get_omitted_words(BORING_WORDS))
-output_ranked_words(message_dict, 'output/messages.txt')
+output_ranked_words(message_dict, get_output_filename(MESSAGE_FILE))
 
 print '\nComments:'
 print_ranked_words(comment_dict)

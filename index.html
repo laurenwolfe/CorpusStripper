@@ -1,11 +1,18 @@
 <html>
     <head>
-        <title>Word Cloud From Corpus</title>
+        <title>Corpus extractor</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
     </head>
 
     <body>
-        <script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script>
-
+    <h2>Upload your file</h2>
+        <form class="form-css" enctype="multipart/form-data" action = "upload.php" method="post">
+            <input class="form-field" type="text" name="name" placeholder="Enter your name:"><br>
+            <div class="form-label">Upload messages.htm: </div>
+            <input class="button" type="file" name="messages" id="messages"><br>
+            <div class="form-label">Upload timeline.htm: </div>
+            <input class="button" type="file" name="timeline" id="timeline"><br>
+            <input class="button" type="submit" value="Upload">
+        </form>
     </body>
-
 </html>
