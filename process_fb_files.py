@@ -11,7 +11,7 @@ OUTPUT_PATH = 'output/'
 MESSAGE_FILE = sys.argv[1]
 TIMELINE_FILE = sys.argv[2]
 
-
+# retrieves list of words to omit
 def get_omitted_words(words):
     boring_file = open(words)
     boring_words = boring_file.read()
@@ -19,6 +19,7 @@ def get_omitted_words(words):
     return omit_words
 
 
+# Filter out all timeline comment aside from user's timeline posts
 def get_comments(filepath):
     # read contents of timeline file into a variable
     timeline_file = open(filepath)
@@ -32,10 +33,10 @@ def get_comments(filepath):
     # concatenate comment strings
     for comment in comment_list:
         comments += comment + ' '
-
     return comments
 
 
+# Retrieve private message text
 def get_messages(filepath):
     # read contents of messages file into a variable
     messages_file = open(filepath)
@@ -44,6 +45,7 @@ def get_messages(filepath):
     return messages_content
 
 
+# Filter out unwanted characters via regular expressions
 def filter_by_regex(corpus):
     # strip timestamps (from messages.htm)
     corpus = re.sub('<span class="meta">.*?</span>', '', corpus)
@@ -59,10 +61,10 @@ def filter_by_regex(corpus):
     corpus = re.sub('\.|,|!|-', '', corpus)
     # set all chars to uppercase
     corpus.upper()
-
     return corpus
 
 
+# Tally occurrences of all words in corpus
 def count_words(corpus):
     # count words
     words = corpus.split()
@@ -79,6 +81,7 @@ def count_words(corpus):
     return word_counts
 
 
+# Filter out "boring" words
 def filter_and_sort_words(word_counts, omitted_words):
     # remove boring words from dictionary
     for omit in omitted_words:
@@ -86,10 +89,10 @@ def filter_and_sort_words(word_counts, omitted_words):
 
     # return tuples in descending order by count
     ranked_words = sorted(word_counts.items(), key=operator.itemgetter(1), reverse=True)
-
     return ranked_words
 
 
+# Make sure total number of words is greater than specified list size
 def get_max_words(ranked_words):
     total_words = len(ranked_words)
 
@@ -99,6 +102,7 @@ def get_max_words(ranked_words):
     return total_words
 
 
+# Prints words and occurrence counts in console
 def print_ranked_words(ranked_words):
     if len(ranked_words) > 0:
         total_words = get_max_words(ranked_words)
@@ -112,12 +116,15 @@ def print_ranked_words(ranked_words):
     return
 
 
+# Outputs top n highest occurring words to a .txt file
 def output_ranked_words(ranked_words, filepath):
     if len(ranked_words) > 0:
         total_words = get_max_words(ranked_words)
         diff = ranked_words[total_words - 1][1]
         output_str = ''
 
+        # Dividing all ranked word counts by lowest ranked word in the set
+        # This makes the word cloud easier to read, overall
         for i in range(total_words):
             count = ranked_words[i][1] / diff
 
@@ -131,6 +138,7 @@ def output_ranked_words(ranked_words, filepath):
     return
 
 
+# Generates an output filename based on the uploaded file's partially pseudorandom username
 def get_output_filename(filename):
     split_name = filename.split('.')
     output_file = split_name[0] + '.txt'
@@ -138,6 +146,7 @@ def get_output_filename(filename):
     return path
 
 
+# Process timeline data
 comments = get_comments(UPLOAD_PATH + TIMELINE_FILE)
 comments = filter_by_regex(comments)
 comments = comments.upper()
@@ -145,6 +154,7 @@ comment_dict = count_words(comments)
 comment_dict = filter_and_sort_words(comment_dict, get_omitted_words(BORING_WORDS))
 output_ranked_words(comment_dict, get_output_filename(TIMELINE_FILE))
 
+# Process private message data
 messages = get_messages(UPLOAD_PATH + MESSAGE_FILE)
 messages = filter_by_regex(messages)
 messages = messages.upper()
@@ -152,6 +162,7 @@ message_dict = count_words(messages)
 message_dict = filter_and_sort_words(message_dict, get_omitted_words(BORING_WORDS))
 output_ranked_words(message_dict, get_output_filename(MESSAGE_FILE))
 
+# Print results to console
 print '\nComments:'
 print_ranked_words(comment_dict)
 
